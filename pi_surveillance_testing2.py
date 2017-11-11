@@ -46,7 +46,7 @@ rawCapture = PiRGBArray(camera, size=tuple(conf["resolution"]))
 # allow the camera to warmup, then initialize the average frame, last
 # uploaded timestamp, and frame motion counter
 print("[INFO] warming up...")
-dbx = dropbox.Dropbox("J7v1Ttn6kHsAAAAAAAAa-sPN6sV57JZMnWODVefFY22wwDE0xPMmwGY3GWlZOIzF")
+dbx = dropbox.Dropbox("DROPBOX KEY")
 print("[SUCCESS] dropbox account linked")
 time.sleep(conf["camera_warmup_time"])
 avg = None
@@ -150,8 +150,8 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
                 #Use telegram to send the video to the group chat
                 import telegram
-                bot = telegram.Bot(token='389574065:AAER3olx1cNxhCzZpdOa8WbUjKvFaaZbd90')
-                bot.send_video(chat_id=-217118188, video=open(p, 'rb'))
+                bot = telegram.Bot(token='TELEGRAM TOKEN')
+                bot.send_video(chat_id='-TELEGRAM_ID', video=open(p, 'rb'))
 
 
         # check to see if the frames should be displayed to screen
