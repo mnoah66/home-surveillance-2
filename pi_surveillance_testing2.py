@@ -13,6 +13,7 @@ import imutils
 import json
 import time
 import cv2
+import os
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
@@ -45,14 +46,23 @@ rawCapture = PiRGBArray(camera, size=tuple(conf["resolution"]))
  
 # allow the camera to warmup, then initialize the average frame, last
 # uploaded timestamp, and frame motion counter
-print("[INFO] warming up...")
-dbx = dropbox.Dropbox("DROPBOX KEY")
-print("[SUCCESS] dropbox account linked")
+
+dbx = dropbox.Dropbox("DROPBOX_KEY")
+
 time.sleep(conf["camera_warmup_time"])
 avg = None
 lastUploaded = datetime.datetime.now()
 consecFrames = 0
 motionCounter = 0
+
+import telegram
+camera.capture('/home/pi/Desktop/image.jpg')
+camera.stop_preview()
+bot = telegram.Bot(token='TELEGRAM_API_KEY')
+bot.send_message(chat_id=-MYCHAT, text="Security Camera is ON. A preview is below.")
+bot.send_photo(chat_id=-MYCHAT, photo=open('/home/pi/Desktop/image.jpg', 'rb'))
+
+
 # capture frames from the camera
 for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
         # grab the raw NumPy array representing the image and initialize
@@ -70,7 +80,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
         
         # if the average frame is None, initialize it
         if avg is None:
-                print("[INFO] starting background model...")
+                
                 avg = gray.copy().astype("float")
                 rawCapture.truncate(0)
                 continue
@@ -121,7 +131,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
                         #cv2.imwrite('/home/pi/LocalDetection/' + origFileName, orig)
                         #print("Uploaded")
                         if not kcw.recording:
-                                print('[INFO] Recording...')
+                                
                                 timestamp = datetime.datetime.now()
                                 # .avi for an avi (must have MJPG set in codec in args
                                 p = "{}/{}.mp4".format(args["output"],timestamp.strftime("%Y%m%d-%H%M%S"))
@@ -143,15 +153,13 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
                 #Wait 5 seconds to ensure file is written 100%
                 time.sleep(5)
 
-                print("[UPLOAD] {}".format(ts))
-                path = "/{base_path}/{p}".format(base_path=conf["dropbox_base_path"], p=p)
-                dbx.files_upload(open(p, "rb").read(), path)
+                
+                #path = "/{base_path}/{p}".format(base_path=conf["dropbox_base_path"], p=p)
+                #dbx.files_upload(open(p, "rb").read(), path)
 
 
                 #Use telegram to send the video to the group chat
-                import telegram
-                bot = telegram.Bot(token='TELEGRAM TOKEN')
-                bot.send_video(chat_id='-TELEGRAM_ID', video=open(p, 'rb'))
+                bot.send_video(chat_id=-MYCHAT, video=open(p, 'rb'))
 
 
         # check to see if the frames should be displayed to screen
